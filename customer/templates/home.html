@@ -1,0 +1,88 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}
+    <title>Advarisk News - Home</title>
+{% endblock %}
+
+{% block style %}
+    <style>
+        form.example input[type=text] {
+            padding: 10px;
+            font-size: 17px;
+            border: 1px solid grey;
+            float: left;
+            width: 80%;
+            background: #f1f1f1;
+        }
+
+        form.example button {
+            float: left;
+            width: 20%;
+            padding: 10px;
+            background: #2196F3;
+            color: white;
+            font-size: 17px;
+            border: 1px solid grey;
+            border-left: none;
+            cursor: pointer;
+        }
+
+        form.example button:hover {
+            background: #0b7dda;
+        }
+
+        form.example::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+        .fa-search{
+            color: white;
+            z-index: 0;
+            position: initial;
+            float: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert"
+             style="color: black; font-size: 14px;">{{ message }}
+            <span style="font-size: 14px;color: black;float: right;cursor: pointer"
+                  class="dot closebtn"
+                  onclick="this.parentElement.style.display='none';">&times;</span>
+        </div>
+    {% endfor %}
+    <form class="example" action="{% url 'customer:search_news' %}">
+        <input type="text" placeholder="Search.." name="search" required>
+        <button type="submit">
+            <i class="fa fa-search"></i>
+        </button>
+    </form>
+
+    {% if articles %}
+        {% for article in articles %}
+            <div class="card">
+                <div class="row no-gutters">
+                    <div class="col-sm-5" style="background: #868e96;">
+                        <img src="{{ article.urlToImage }}" class="card-img-top" width="250" height="250" alt="...">
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ article.title }}</h5>
+                            <p class="card-text">{{ article.description }}</p>
+                            <a href="{{ article.url }}" target="_blank" style="color: blue; float: right;">See more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+    <script>
+
+    </script>
+{% endblock %}

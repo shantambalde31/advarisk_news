@@ -1,0 +1,149 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Advarisk News - UserList</title>
+{% endblock %}
+
+{% block style %}
+    <style>
+    .delete-btn:focus, .delete-btn:active{
+        background-color: transparent;
+        border: none;
+    }
+    .delete-btn{
+        background-color: transparent;
+        border: none;
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-center mt-3 mb-3">
+        <h4 class="dorm-ban">Users </h4>
+    </div>
+    <div class="d-flex justify-content-center mt-3 mb-3">
+        <a href="{% url 'admin_panel:user' %}" class="btn btn-2">Add new user</a>
+    </div>
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert"
+             style="color: black; font-size: 14px;">{{ message }}
+            <span style="font-size: 14px;color: black;float: right;cursor: pointer"
+                  class="dot closebtn"
+                  onclick="this.parentElement.style.display='none';">&times;</span>
+        </div>
+    {% endfor %}
+    <table class="table border ">
+        <thead class="thead-dark">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody class="student-dorm">
+        {% if users %}
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" class="user_status" id="status-{{ user.id }}" data-user_id="{{ user.id }}" {% if user.is_active %} checked {% endif %}>
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button type="button" class="delete-btn" data-user_id="{{ user.id }}" data-toggle="modal" data-target="#deleteConfirmation">
+                            <i class="fa fa-trash" aria-hidden="true" style="color: red; font-size: 20px;"></i>
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="4">
+                    <center>
+                        No record found
+                    </center>
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <!-- Modal -->
+
+    <div class="modal fade" id="changeStatusConfirmation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to change status?
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:void(0)" id="status_close_btn" data-toggle-btn="" class="btn btn-danger" data-dismiss="modal">No</a>
+                    <a href="javascript:void(0)" id="confirm_change" class="btn btn-success">Yes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteConfirmation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete?
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:void(0)" class="btn btn-danger" data-dismiss="modal">No</a>
+                    <a href="javascript:void(0)" id="confirm_delete" class="btn btn-success">Yes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            $(".delete-btn").on('click', function () {
+                var user_id = $(this).data('user_id');
+                var url = "{% url 'admin_panel:delete_user' %}?user_id="+user_id;
+                $("#confirm_delete").attr({"href": url});
+            });
+
+            $(".user_status").on('change', function () {
+                var user_id = $(this).data('user_id');
+                var url = "{% url 'admin_panel:block_user' %}?user_id="+user_id;
+                $("#status_close_btn").attr({"data-toggle-btn": "status-"+user_id});
+                $("#confirm_change").attr({"href": url});
+                $("#changeStatusConfirmation").modal("show");
+            });
+
+            $("#status_close_btn").on('click', function () {
+                var toggle_btn = $(this).data('toggle-btn');
+                if($("#"+toggle_btn).is(":checked")){
+                    $("#"+toggle_btn).prop("checked", false);
+                }
+                else{
+                    $("#"+toggle_btn).prop("checked", true);
+                }
+
+            });
+        });
+    </script>
+{% endblock %}

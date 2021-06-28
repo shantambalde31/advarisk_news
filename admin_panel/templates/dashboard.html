@@ -1,0 +1,20 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}
+    <title>Advarisk News - Dashboard</title>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{% url 'admin_panel:users_list' %}">
+                <div class="drom-crd-1">
+                    <p class="drom-txt" style="color: #fff;">
+                        Users <br> {{ users_count }}
+                        <span>  <img src="{% static 'images/student.png' %}" style="width: 60px; height: 60px;">   </span>
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+{% endblock %}
