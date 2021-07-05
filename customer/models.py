@@ -46,4 +46,9 @@ class User(AbstractUser):
 
 
 class SearchedKeywords(models.Model):
-    print()
+    keyword = models.CharField(max_length=254, null=True, blank=True)
+    last_search = models.DateTimeField(null=True, blank=True)
+    searched_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{} - {}".format(self.keyword, self.searched_by.email)

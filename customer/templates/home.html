@@ -62,6 +62,11 @@
     </form>
 
     {% if articles %}
+        <div class="refresh-btn-div">
+            <a href="{% url 'customer:refresh_search_news' %}?search={{ keyword }}" class="btn btn-primary" role="button" aria-pressed="true">
+                <i class="fa fa-refresh" aria-hidden="true"></i>
+            </a>
+        </div>
         {% for article in articles %}
             <div class="card">
                 <div class="row no-gutters">

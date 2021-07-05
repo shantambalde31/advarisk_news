@@ -5,10 +5,12 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from advarisk_news.backends.backends import AuthBackend
 from django.utils.decorators import method_decorator
-from customer.decorators import user_login_required
+from customer.decorators import user_login_required, search_threshold
 from django.conf import settings
 import requests
-
+from customer.models import SearchedKeywords
+from datetime import datetime
+from customer.services import SearchNewsService
 # Create your views here.
 
 
@@ -62,44 +64,69 @@ class HomePageViewSet(TemplateView):
 
 
 @method_decorator(user_login_required, name='dispatch')
+@method_decorator(search_threshold, name='dispatch')
 class SearchNewsViewSet(View):
 
     def get(self, request):
 
         data = request.GET
-        search_string = data.get('search')
+        search_string = data.get('search').strip()
         if search_string:
-            if not request.session.get(search_string):
-                url = ('https://newsapi.org/v2/everything?'
-                       'q='+search_string+'&'
-                       'sortBy=publishedAt&'
-                       'apiKey='+settings.NEWS_API_KEY)
-
-                response = requests.get(url)
-                result = response.json()
-                if result.get('status') == 'ok':
-                    articles = result.get('articles')
-                    if articles:
-                        context = {
-                            'keyword': search_string,
-                            'articles': articles
-                        }
-                        messages.success(request, "Searched results for : " + str(data.get('search')))
-                        request.session[search_string] = articles
-                        return render(request, 'home.html', context)
-                    else:
-                        messages.warning(request, "No articles found for this keyword!!!")
-                        return redirect("customer:home")
+            searched_keyword, created = SearchedKeywords.objects.get_or_create(keyword=search_string,
+                                                                               searched_by=request.user)
+            searched_keyword.last_search = datetime.now()
+            searched_keyword.save()
+            result = SearchNewsService.get_news(search_string)
+            if result.get('status') == 'ok':
+                articles = result.get('articles')
+                if articles:
+                    context = {
+                        'keyword': search_string,
+                        'articles': articles
+                    }
+                    messages.success(request, "Searched results for : " + str(data.get('search')))
+                    request.session[search_string] = articles
+                    return render(request, 'home.html', context)
                 else:
-                    messages.warning(request, "Something went wrong!!!")
+                    messages.warning(request, "No articles found for this keyword!!!")
                     return redirect("customer:home")
             else:
-                context = {
-                    'keyword': search_string,
-                    'articles': request.session.get(search_string)
-                }
-                messages.success(request, "Searched results for : " + str(data.get('search')))
-                return render(request, 'home.html', context)
+                messages.warning(request, "Something went wrong!!!")
+                return redirect("customer:home")
+        else:
+            messages.warning(request, "Please provide search string")
+            return redirect("customer:home")
+
+
+@method_decorator(user_login_required, name='dispatch')
+@method_decorator(search_threshold, name='dispatch')
+class RefreshSearchNewsViewSet(View):
+
+    def get(self, request):
+        data = request.GET
+        search_string = data.get('search').strip()
+        if search_string:
+            searched_keyword, created = SearchedKeywords.objects.get_or_create(keyword=search_string,
+                                                                               searched_by=request.user)
+            searched_keyword.last_search = datetime.now()
+            searched_keyword.save()
+            result = SearchNewsService.refresh_news(search_string)
+            if result.get('status') == 'ok':
+                articles = result.get('articles')
+                if articles:
+                    context = {
+                        'keyword': search_string,
+                        'articles': articles
+                    }
+                    messages.success(request, "Refreshed results for : " + str(data.get('search')))
+                    request.session[search_string] = articles
+                    return render(request, 'home.html', context)
+                else:
+                    messages.warning(request, "No articles found for this keyword!!!")
+                    return redirect("customer:home")
+            else:
+                messages.warning(request, "Something went wrong!!!")
+                return redirect("customer:home")
         else:
             messages.warning(request, "Please provide search string")
             return redirect("customer:home")

@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.generic.base import TemplateView
-from customer.models import User
+from customer.models import User, SearchedKeywords
 from django.views import View
 from customer.serializers import UserSerializer
 from django.utils.decorators import method_decorator
 from customer.decorators import admin_login_required
+from django.db.models import Count
 
 # Create your views here.
 
@@ -17,6 +18,7 @@ class DashboardViewSet(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['users_count'] = User.objects.filter().exclude(is_superuser=True).count()
+        context['keywords_count'] = SearchedKeywords.objects.values('keyword').annotate(count=Count('keyword')).count()
         return context
 
 
@@ -82,3 +84,13 @@ def block_user(request):
     else:
         messages.warning(request, "User details required")
         return redirect('admin_panel:users_list')
+
+
+class TrendingKeywordsViewSet(View):
+
+    def get(self, request):
+        keywords = SearchedKeywords.objects.values('keyword').annotate(count=Count('keyword')).order_by('-count')
+        context = {
+            'keywords': keywords
+        }
+        return render(request, 'trending_keywords.html', context)

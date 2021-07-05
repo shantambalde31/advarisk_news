@@ -9,4 +9,6 @@ urlpatterns = [
     path('user/', admin_views.UserViewSet.as_view(), name='user'),
     path('delete_user/', admin_views.delete_user, name='delete_user'),
     path('block_user/', admin_views.block_user, name='block_user'),
+
+    path('trending_keywords/', admin_views.TrendingKeywordsViewSet.as_view(), name='trending_keywords'),
 ]
